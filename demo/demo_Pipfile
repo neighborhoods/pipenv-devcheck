@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+flake8 = "==3.7.9"
+pytest = "==5.3.2"
+
+[packages]
+matplotlib = "==3.1.2"
+numpy = "==1.17.1"
+pandas = "==0.25.1"
+seaborn = "==0.9.0"
+simple_salesforce = "==0.74.3"
+
+[requires]
+python_version = "3.7"
