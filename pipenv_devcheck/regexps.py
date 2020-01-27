@@ -1,4 +1,4 @@
-from pipenv_setup_comp.check_fns import operators
+from pipenv_devcheck.check_fns import operators
 
 ops_exp = "(?:"
 for i in range(len(list(operators.keys()))):

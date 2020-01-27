@@ -1,8 +1,8 @@
 from packaging.version import parse as parse_version
 import re
 
-from pipenv_setup_comp.check_fns import check_fn_mapping
-from pipenv_setup_comp.regexps import ops_exp, setup_exp, pipfile_exp
+from pipenv_devcheck.check_fns import check_fn_mapping
+from pipenv_devcheck.regexps import ops_exp, setup_exp, pipfile_exp
 
 
 def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
@@ -35,15 +35,16 @@ def extract_setup_deps_text(lines):
     for i in range(len(lines)):
         if deps_end_line < 0:
             if deps_start_line >= 0 and open_brackets == 0:
-                deps_end_line = i
+                deps_end_line = i - 1
 
             current_line = lines[i]
             if "install_requires" in current_line:
-                deps_start_line = i
+                deps_start_line = i + 1
             open_brackets += current_line.count("[")
             open_brackets -= current_line.count("]")
 
     deps_joined = "".join(lines[deps_start_line:deps_end_line])
+    print(deps_joined)
     return deps_joined
 
 
@@ -55,10 +56,10 @@ def extract_pipfile_deps_text(lines):
             current_line = lines[i]
             if deps_start_line > 0 and (re.search(r"\[\w*\]", current_line) or
                                         i == (len(lines) - 1)):
-                deps_end_line = i
+                deps_end_line = i - 1
 
             if "[packages]" in current_line:
-                deps_start_line = i
+                deps_start_line = i + 1
 
     deps_joined = "".join(lines[deps_start_line:deps_end_line])
     return deps_joined
@@ -81,11 +82,11 @@ def deps_text_to_dict(deps_text, type):
 
 
 def run_checks(setup_deps, pipfile_deps):
-    name_equality_checks(setup_deps, pipfile_deps)
+    name_equality_check(setup_deps, pipfile_deps)
     version_check(setup_deps, pipfile_deps)
 
 
-def name_equality_checks(setup_deps, pipfile_deps):
+def name_equality_check(setup_deps, pipfile_deps):
     in_setup_not_pipfile = set(setup_deps.keys()).difference(
         set(pipfile_deps.keys()))
     in_pipfile_not_setup = set(pipfile_deps.keys()).difference(
@@ -93,10 +94,10 @@ def name_equality_checks(setup_deps, pipfile_deps):
     if len(in_setup_not_pipfile) or len(in_pipfile_not_setup):
         err_msg = "Dependency name mismatch!\n"
         if len(in_setup_not_pipfile):
-            err_msg += ("Deps in setup.py but not in Pipfile: " +
+            err_msg += ("Dependencies in setup.py but not in Pipfile: " +
                         str(in_setup_not_pipfile) + "\n")
         if len(in_pipfile_not_setup):
-            err_msg += ("Deps in Pipfile but not in setup.py: " +
+            err_msg += ("Dependencies in Pipfile but not in setup.py: " +
                         str(in_pipfile_not_setup) + "\n")
         raise ValueError(err_msg)
 
@@ -107,19 +108,26 @@ def version_check(setup_deps, pipfile_deps):
         pipfile_dep_specs = pipfile_deps[dep_name]
 
         for setup_dep_spec in setup_dep_specs:
-            setup_dep_op = setup_dep_spec[0]
-            setup_dep_version = parse_version(setup_dep_spec[1])
-            check_fn = check_fn_mapping[setup_dep_op]
+            setup_op = setup_dep_spec[0]
+            setup_version = parse_version(setup_dep_spec[1])
+
+            check_fn = check_fn_mapping[setup_op]
+            check_args = {}
+            if setup_op not in ["==", "!="]:
+                check_args["setup_op"] = setup_op
+            check_args["setup_version"] = setup_version
 
             for pipfile_dep_spec in pipfile_dep_specs:
-                pipfile_dep_op = pipfile_dep_spec[0]
-                pipfile_dep_version = parse_version(pipfile_dep_spec[1])
-                if not check_fn(setup_dep_op, setup_dep_version,
-                                pipfile_dep_op, pipfile_dep_version):
+                pipfile_op = pipfile_dep_spec[0]
+                pipfile_version = parse_version(pipfile_dep_spec[1])
+                check_args["pipfile_op"] = pipfile_op
+                check_args["pipfile_version"] = pipfile_version
+
+                if not check_fn(**check_args):
                     problem_deps.append(dep_name)
 
     if len(problem_deps):
         raise ValueError(
-            "Dependency discrepancies between Pipfile and "
-            "install_requires are present in the following packages: " +
+            "Dependency discrepancies between Pipfile and setup.py "
+            "are present in the following packages: " +
             ", ".join(problem_deps))

@@ -6,7 +6,6 @@ setup(
         author='neighborhoods.com',
         maintainer='George Wood (Geoiv)',
         description='Checks compatibility between developer/user dependencies',
-        licence='Proprietary',
         packages=find_packages(),
         install_requires=[
         ],
