@@ -114,12 +114,8 @@ def version_check(setup_deps, pipfile_deps):
             for pipfile_dep_spec in pipfile_dep_specs:
                 pipfile_dep_op = pipfile_dep_spec[0]
                 pipfile_dep_version = parse_version(pipfile_dep_spec[1])
-                print(dep_name)
-                print(pipfile_dep_op)
-                print(pipfile_dep_version)
                 if not check_fn(setup_dep_op, setup_dep_version,
                                 pipfile_dep_op, pipfile_dep_version):
-                    print("ADDING: " + dep_name)
                     problem_deps.append(dep_name)
 
     if len(problem_deps):
