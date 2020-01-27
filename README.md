@@ -22,3 +22,8 @@ package release to update requirements, or developers having difficulty
 with helping users debug due to a hidden environment difference.
 
 After installation, simply run `pipenv-devcheck` via the command line to use!
+
+## Visible Examples ##
+To interact with this tool and see how its output will be displayed, simply modify
+`demo/demo_Pipfile` and `demo/demo_setup.py` to introduce various version
+discrepances, and then run the code in `demo/demo.py`.
