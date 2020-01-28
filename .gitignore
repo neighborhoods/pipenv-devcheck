@@ -6,3 +6,4 @@
 *.ipynb
 statreliability.egg-info
 *.egg-info/
+.coverage

@@ -1,13 +1,16 @@
 import pytest
 
-from pipenv_devcheck.pipenv_setup_comp import (extract_setup_deps_text,
-                                               extract_pipfile_deps_text,
+from pipenv_devcheck.pipenv_setup_comp import (extract_deps_text,
                                                deps_text_to_dict,
                                                name_equality_check,
                                                version_check)
 
 
-def test_extract_setup_deps_text():
+def test_extract_deps_text_setup():
+    """
+    Tests that setup.py dependencies are successfully read and extracted into
+    a single string
+    """
     setup_lines = [
          "from setuptools import setup, find_packages\n",
          "\n",
@@ -35,11 +38,15 @@ def test_extract_setup_deps_text():
         "                'simple_salesforce>=0.74.3'\n"
     )
 
-    setup_deps_text = extract_setup_deps_text(setup_lines)
+    setup_deps_text = extract_deps_text(setup_lines, "setup")
     assert setup_deps_text == expected_deps_text
 
 
-def test_extract_pipfile_deps_text():
+def test_extract_deps_text_pipfile():
+    """
+    Tests that Pipfile dependencies are successfully read and extracted into
+    a single string
+    """
     pipfile_lines = [
         '[[source]]\n',
         'name = "pypi"\n',
@@ -64,11 +71,15 @@ def test_extract_pipfile_deps_text():
         'simple_salesforce = "==0.74.3"\n'
     )
 
-    pipfile_deps_text = extract_pipfile_deps_text(pipfile_lines)
+    pipfile_deps_text = extract_deps_text(pipfile_lines, "pipfile")
     assert pipfile_deps_text == expected_deps_text
 
 
 def test_deps_text_to_dict_setup():
+    """
+    Tests that setup.py dependencies are successfully
+    translated to a dictionary
+    """
     deps_text = (
         "                'matplotlib>=3.1.1',\n"
         "                'numpy>=1.17.2',\n"
@@ -90,6 +101,9 @@ def test_deps_text_to_dict_setup():
 
 
 def test_deps_text_to_dict_pipfile():
+    """
+    Tests that Pipfile dependencies are successfully translated to a dictionary
+    """
     deps_text = (
         'matplotlib = "=>3.1.1, <=3.1.2"\n'
         'numpy = "==1.17.2"\n'
@@ -110,6 +124,9 @@ def test_deps_text_to_dict_pipfile():
 
 
 def test_name_equality_check_valid():
+    """
+    Tests that no errors are raised when no name discrepancies are present
+    """
     setup_deps = {
         "matplotlib": [(">=", "3.1.1")],
         "numpy": [(">=", "1.17.2")],
@@ -125,10 +142,14 @@ def test_name_equality_check_valid():
         "simple_salesforce": [("==", "0.74.3")]
     }
 
-    name_equality_check(setup_deps, pipfile_deps)
+    assert name_equality_check(setup_deps, pipfile_deps)
 
 
 def test_name_equality_check_in_setup_not_pipfile():
+    """
+    Checks that the proper errors are raised when a dependency name is present
+    in setup.py but not in the Pipfile
+    """
     setup_deps = {
         "matplotlib": [(">=", "3.1.1")],
         "numpy": [(">=", "1.17.2")],
@@ -151,6 +172,10 @@ def test_name_equality_check_in_setup_not_pipfile():
 
 
 def test_name_equality_check_in_pipfile_not_setup():
+    """
+    Checks that the proper errors are raised when a dependency name is present
+    in the Pipfile but not in setup.py
+    """
     setup_deps = {
         "matplotlib": [(">=", "3.1.1")],
         "numpy": [(">=", "1.17.2")],
@@ -173,6 +198,10 @@ def test_name_equality_check_in_pipfile_not_setup():
 
 
 def test_name_equality_check_dual_mismatch():
+    """
+    Checks that the correct errors are raised when there is a two-sided
+    discrepancy in dependency names
+    """
     setup_deps = {
         "matplotlib": [(">=", "3.1.1")],
         "numpy": [(">=", "1.17.2")],
@@ -215,12 +244,12 @@ def test_version_check_valid():
         "simple_salesforce": [("==", "0.74.3")]
     }
 
-    version_check(setup_deps, pipfile_deps)
+    assert version_check(setup_deps, pipfile_deps)
 
 
 def test_version_check_invalid():
     """
-    Tests that the version_check passes in a valid situation
+    Tests that the version_check fails in an invalid situation
     """
     setup_deps = {
         "matplotlib": [(">=", "3.1.1")],

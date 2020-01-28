@@ -9,8 +9,10 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     setup_lines, pipfile_lines = read_dep_files(setup_filename,
                                                 pipfile_filename)
 
-    setup_deps_text = extract_setup_deps_text(setup_lines)
-    pipfile_deps_text = extract_pipfile_deps_text(pipfile_lines)
+    # setup_deps_text = extract_setup_deps_text(setup_lines)
+    # pipfile_deps_text = extract_pipfile_deps_text(pipfile_lines)
+    setup_deps_text = extract_deps_text(setup_lines, "setup")
+    pipfile_deps_text = extract_deps_text(pipfile_lines, "pipfile")
     setup_deps = deps_text_to_dict(setup_deps_text, "setup")
     pipfile_deps = deps_text_to_dict(pipfile_deps_text, "pipfile")
 
@@ -28,38 +30,33 @@ def read_dep_files(setup_filename, pipfile_filename):
     return setup_lines, pipfile_lines
 
 
-def extract_setup_deps_text(lines):
+def extract_deps_text(lines, type):
     deps_start_line = -1
     deps_end_line = -1
-    open_brackets = 0
-    for i in range(len(lines)):
-        if deps_end_line < 0:
-            if deps_start_line >= 0 and open_brackets == 0:
-                deps_end_line = i - 1
+    is_setup = type == "setup"
+    if is_setup:
+        open_brackets = 0
 
-            current_line = lines[i]
-            if "install_requires" in current_line:
-                deps_start_line = i + 1
-            open_brackets += current_line.count("[")
-            open_brackets -= current_line.count("]")
-
-    deps_joined = "".join(lines[deps_start_line:deps_end_line])
-    print(deps_joined)
-    return deps_joined
-
-
-def extract_pipfile_deps_text(lines):
-    deps_start_line = -1
-    deps_end_line = -1
     for i in range(len(lines)):
         if deps_end_line < 0:
             current_line = lines[i]
-            if deps_start_line > 0 and (re.search(r"\[\w*\]", current_line) or
-                                        i == (len(lines) - 1)):
-                deps_end_line = i - 1
 
-            if "[packages]" in current_line:
+            if is_setup:
+                start_cond = "install_requires" in current_line
+                end_cond = open_brackets == 0
+            else:
+                start_cond = "[packages]" in current_line
+                end_cond = (re.search(r"\[\w*\]", current_line) or
+                            i == (len(lines) - 1))
+
+            if deps_start_line > 0 and end_cond:
+                deps_end_line = i - 1
+            if start_cond:
                 deps_start_line = i + 1
+
+            if is_setup:
+                open_brackets += current_line.count("[")
+                open_brackets -= current_line.count("]")
 
     deps_joined = "".join(lines[deps_start_line:deps_end_line])
     return deps_joined
@@ -100,6 +97,7 @@ def name_equality_check(setup_deps, pipfile_deps):
             err_msg += ("Dependencies in Pipfile but not in setup.py: " +
                         str(in_pipfile_not_setup) + "\n")
         raise ValueError(err_msg)
+    return True
 
 
 def version_check(setup_deps, pipfile_deps):
@@ -131,3 +129,4 @@ def version_check(setup_deps, pipfile_deps):
             "Dependency discrepancies between Pipfile and setup.py "
             "are present in the following packages: " +
             ", ".join(problem_deps))
+    return True
