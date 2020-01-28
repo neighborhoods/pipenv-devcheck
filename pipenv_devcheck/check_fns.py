@@ -67,9 +67,7 @@ def check_range(setup_op, setup_version, pipfile_op, pipfile_version):
             operators[pipfile_op](setup_version, pipfile_version))
 
 
-"""
-Mapping from operator strings to comparison functions
-"""
+# Mapping from operator strings to comparison functions
 operators = {
     "==": operator.eq,
     "!=": operator.ne,
@@ -80,9 +78,7 @@ operators = {
     ">": operator.gt
 }
 
-"""
-Mapping from operator strings to relevant comparison functions
-"""
+# Mapping from operator strings to relevant comparison functions
 check_fn_mapping = {
     "==": check_equality,
     "!=": check_inequality,

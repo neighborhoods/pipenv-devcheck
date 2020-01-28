@@ -148,6 +148,9 @@ def name_equality_check(setup_deps, pipfile_deps):
         bool:
             Whether the check passes - will always be true, otherwise the
             function will not reach this line.
+    Raises:
+        ValueError:
+            If there are discrepancies between version names
     """
     in_setup_not_pipfile = set(setup_deps.keys()).difference(
         set(pipfile_deps.keys()))
@@ -183,6 +186,9 @@ def version_check(setup_deps, pipfile_deps):
         bool:
             Whether the check passes - will always be true, otherwise the
             function will not reach this line.
+    Raises:
+        ValueError:
+            If there are discrepancies between version specifications
     """
     problem_deps = []
     for dep_name, setup_dep_specs in setup_deps.items():
