@@ -6,11 +6,20 @@ from pipenv_devcheck.regexps import ops_exp, setup_exp, pipfile_exp
 
 
 def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
+    """
+
+    Args:
+        setup_filename (str, default "setup.py"):
+            Location/name of file to be used as setup.py
+        pipfile_filename (str, default "Pipfile"):
+            Location/name of file to be used as Pipfile
+    Returns:
+        tuple<str, str>:
+            Dictionaries of the dependencies found in setup.py and the Pipfile
+    """
     setup_lines, pipfile_lines = read_dep_files(setup_filename,
                                                 pipfile_filename)
 
-    # setup_deps_text = extract_setup_deps_text(setup_lines)
-    # pipfile_deps_text = extract_pipfile_deps_text(pipfile_lines)
     setup_deps_text = extract_deps_text(setup_lines, "setup")
     pipfile_deps_text = extract_deps_text(pipfile_lines, "pipfile")
     setup_deps = deps_text_to_dict(setup_deps_text, "setup")
@@ -21,6 +30,9 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
 
 
 def read_dep_files(setup_filename, pipfile_filename):
+    """
+    Reads text as an array of lines from files at specified names
+    """
     with open(setup_filename, "r") as f:
         setup_lines = f.readlines()
 
@@ -31,6 +43,21 @@ def read_dep_files(setup_filename, pipfile_filename):
 
 
 def extract_deps_text(lines, type):
+    """
+    Constructs a single string containing only dependencies from the lines of
+    a dependency file
+
+    Args:
+        lines (list<str>):
+            Array of lines from dependency file
+        type (str):
+            Type of dependency file the lines are sourced from
+            (setup.py or Pipfile)
+    Returns:
+        str:
+            A single string containing only the dependency section extracteed
+            from a dependency file
+    """
     deps_start_line = -1
     deps_end_line = -1
     is_setup = type == "setup"
@@ -63,6 +90,23 @@ def extract_deps_text(lines, type):
 
 
 def deps_text_to_dict(deps_text, type):
+    """
+    Converts single string of dependencies to a dictionary from
+    dependeny name keys to version specification values
+
+    Args:
+        deps_text (str):
+            String containing the dependency-specific section
+            of a dependency file
+        type (str):
+            What type of dependency file that deps_text was read from
+            (setup.py or Pipfile)
+    Returns:
+        dict<str, list<tuple<str, str>>>:
+                        Dictionary from dependency name keys to a list of
+                        tuples as a value, with the tuples containing
+                        a comparision operator and a version specification.
+    """
     if type == "setup":
         exp = setup_exp
     elif type == "pipfile":
@@ -79,11 +123,32 @@ def deps_text_to_dict(deps_text, type):
 
 
 def run_checks(setup_deps, pipfile_deps):
+    """
+    Runs all currently implemented checks
+    """
     name_equality_check(setup_deps, pipfile_deps)
     version_check(setup_deps, pipfile_deps)
 
 
 def name_equality_check(setup_deps, pipfile_deps):
+    """
+    Checks that all names present in either dependency file are present
+    in both dependency files
+
+    Args:
+        setup_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary from setup.py dependency name keys to a list of
+            tuples as a value, with the tuples containing
+            a comparision operator and a version specification.
+        pipfile_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary from Pipfile dependency name keys to a list of
+            tuples as a value, with the tuples containing
+            a comparision operator and a version specification.
+    Returns:
+        bool:
+            Whether the check passes - will always be true, otherwise the
+            function will not reach this line.
+    """
     in_setup_not_pipfile = set(setup_deps.keys()).difference(
         set(pipfile_deps.keys()))
     in_pipfile_not_setup = set(pipfile_deps.keys()).difference(
@@ -101,6 +166,24 @@ def name_equality_check(setup_deps, pipfile_deps):
 
 
 def version_check(setup_deps, pipfile_deps):
+    """
+    Checks that the dependency specifications in either dependency file are
+    fully compatibile with those in the other
+
+    Args:
+        setup_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary from setup.py dependency name keys to a list of
+            tuples as a value, with the tuples containing
+            a comparision operator and a version specification.
+        pipfile_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary from Pipfile dependency name keys to a list of
+            tuples as a value, with the tuples containing
+            a comparision operator and a version specification.
+    Returns:
+        bool:
+            Whether the check passes - will always be true, otherwise the
+            function will not reach this line.
+    """
     problem_deps = []
     for dep_name, setup_dep_specs in setup_deps.items():
         pipfile_dep_specs = pipfile_deps[dep_name]

@@ -1,3 +1,4 @@
-from pipenv_setup_comp.pipenv_setup_comp import compare_deps
+#!/usr/bin/env python
+from pipenv_devcheck.pipenv_setup_comp import compare_deps
 
 compare_deps()

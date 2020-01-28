@@ -262,7 +262,7 @@ def test_version_check_invalid():
         "matplotlib": [("=>", "3.1.1"), ("<=", "3.1.2")],
         "numpy": [("==", "1.17.2")],
         "pandas": [("<", "0.25.1")],
-        "seaborn": [("==", "0.9.0")],
+        "seaborn": [("<", "0.8.0")],
         "simple_salesforce": [("==", "0.74.3")]
     }
 
@@ -270,3 +270,5 @@ def test_version_check_invalid():
         version_check(setup_deps, pipfile_deps)
     excinfo.match("Dependency discrepancies")
     excinfo.match("pandas")
+    excinfo.match("seaborn")
+    excinfo.match("pandas, seaborn")

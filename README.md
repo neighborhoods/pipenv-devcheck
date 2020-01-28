@@ -21,9 +21,16 @@ simple in nature, this check can prevent annoying issues such as revising a
 package release to update requirements, or developers having difficulty
 with helping users debug due to a hidden environment difference.
 
-After installation, simply run `pipenv-devcheck` via the command line to use!
+After installation, simply run `pipenv-devcheck` at the root of a package
+via the command line to use!
 
 ## Visible Examples ##
 To interact with this tool and see how its output will be displayed, simply modify
 `demo/demo_Pipfile` and `demo/demo_setup.py` to introduce various version
 discrepances, and then run the code in `demo/demo.py`.
+
+## Disclaimer ##
+This tool is not designed to check for implicit compatibility issues between
+package versions. It will only check if the version numbers specified in a
+package's dependency files theoretically are compatible. Please consult the
+source of the individual packages if implicit compatibility issues arise.
