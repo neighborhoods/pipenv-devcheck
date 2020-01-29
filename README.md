@@ -27,7 +27,14 @@ via the command line to use!
 ## Visible Examples ##
 To interact with this tool and see how its output will be displayed, simply modify
 `demo/demo_Pipfile` and `demo/demo_setup.py` to introduce various version
-discrepances, and then run the code in `demo/demo.py`.
+discrepancies, and then run the following code:
+
+```
+import pipenv_devcheck
+
+pipenv_devcheck.compare_deps("test/test_deps/dummy_setup.py".
+                             "test/test_deps/dummy_Pipfile")
+```
 
 ## Disclaimer ##
 This tool is not designed to check for implicit compatibility issues between
