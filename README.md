@@ -41,3 +41,6 @@ This tool is not designed to check for implicit compatibility issues between
 package versions. It will only check if the version numbers specified in a
 package's dependency files theoretically are compatible. Please consult the
 source of the individual packages if implicit compatibility issues arise.
+
+
+This project is licensed under the terms of the MIT license.
