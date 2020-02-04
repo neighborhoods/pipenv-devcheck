@@ -24,6 +24,9 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 class UploadCommand(Command):
     """Support setup.py upload."""
 
+    description = 'Build and publish the package.'
+    user_options = []
+
     @staticmethod
     def status(s):
         """Prints things in bold."""
