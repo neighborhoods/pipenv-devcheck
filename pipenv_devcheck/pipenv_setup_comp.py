@@ -26,7 +26,6 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     pipfile_deps = deps_text_to_dict(pipfile_deps_text, "pipfile")
 
     run_checks(setup_deps, pipfile_deps)
-    return setup_deps, pipfile_deps
 
 
 def read_dep_files(setup_filename, pipfile_filename):
