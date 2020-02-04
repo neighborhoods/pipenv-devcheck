@@ -10,8 +10,6 @@ from setuptools import setup, find_packages, Command
 here = os.path.abspath(os.path.dirname(__file__))
 
 about = {}
-# with open(os.path.join(
-#           here, 'pipenv-devcheck', '__version__.py'), 'r', 'utf-8') as f:
 with open(os.path.join(here, "pipenv_devcheck", "__version__.py"), "r") as f:
     exec(f.read(), about)
 
@@ -66,6 +64,7 @@ setup(
     author_email=about["__author_email__"],
     description=about["__description__"],
     long_description=long_description,
+    long_description_content_type="text/markdown",
     license=about["__license__"],
     packages=find_packages(),
     install_requires=[],
