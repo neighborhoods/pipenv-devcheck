@@ -1,4 +1,3 @@
-import importlib
 from packaging.version import parse as parse_version
 import re
 import pipfile
@@ -20,19 +19,18 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
         tuple<str, str>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
-    setup_deps, pipfile_deps = new()
+    setup_deps, pipfile_deps = get_deps()
     print(setup_deps)
     print(pipfile_deps)
     run_checks(setup_deps, pipfile_deps)
+    return setup_deps, pipfile_deps
 
 
-def new():
+def get_deps():
     with mock.patch("setuptools.setup") as mock_setup:
         exec(compile(open("setup.py", "rb").read(), "setup.py", 'exec'))
-    print(mock_setup.call_args)
     args, kwargs = mock_setup.call_args
     setup_deps_str = kwargs["install_requires"]
-    print(setup_deps_str)
     setup_deps = {}
     for dep in setup_deps_str:
         parsed_dep = re.findall(setup_exp, dep)[0]
