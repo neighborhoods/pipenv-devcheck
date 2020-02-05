@@ -1,63 +1,88 @@
+import ast
 from packaging.version import parse as parse_version
-import re
 import pipfile
-from unittest import mock
+import re
 
 from pipenv_devcheck.check_fns import check_fn_mapping
 from pipenv_devcheck.regexps import setup_exp, spec_exp, split_exp
 
 
-def compare_deps(setup_name="setup.py", pipfile_name="Pipfile"):
+def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     """
     Main wrapper around reading dependencies and running all checks
 
     Args:
-        setup_name (str, default "setup.py"):
+        setup_filename (str, default "setup.py"):
             Location/name of file to be used as setup.py
-        pipfile_name (str, default "Pipfile"):
+        pipfile_filename (str, default "Pipfile"):
             Location/name of file to be used as Pipfile
     Returns:
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
-    setup_deps, pipfile_deps = get_deps()
+    setup_deps = get_setup_deps(setup_filename)
+    pipfile_deps = get_pipfile_deps(pipfile_filename)
     run_checks(setup_deps, pipfile_deps)
     return setup_deps, pipfile_deps
 
 
-def get_deps(setup_name="setup.py", pipfile_name="Pipfile"):
+def get_setup_deps(setup_filename):
     """
-    Parses dependencies from specified files and returns them as a dictionary
+    Parses dependencies from specified setup file and
+    returns them as a dictionary
 
     Args:
-        setup_name (str, default "setup.py"):
+        setup_filename (str, default "setup.py"):
             Location/name of file to be used as setup.py
-        pipfile_name (str, default "Pipfile"):
-            Location/name of file to be used as Pipfile
     Returns:
         tuple<dict<str, list<tuple<str, str>>>:
-            Dictionaries of the dependencies found in setup.py and the Pipfile
+            Dictionaries of the dependencies found in setup.py
     """
-    with mock.patch("setuptools.setup") as mock_setup:
-        exec(compile(open(setup_name, "rb").read(), setup_name, 'exec'))
-    args, kwargs = mock_setup.call_args
-    setup_deps_str = kwargs["install_requires"]
+    with open(setup_filename, "r") as f:
+        setup_tree = ast.parse(f.read(), setup_filename)
+
+    for node in ast.walk(setup_tree):
+        is_setup_node = (hasattr(node, "func") and
+                         hasattr(node.func, "id") and
+                         node.func.id == "setup")
+        if is_setup_node:
+            setup_node = node
+
+    for kw in setup_node.keywords:
+        if kw.arg == "install_requires":
+            setup_deps_str = ast.literal_eval(kw.value)
+
     setup_deps = {}
     for dep in setup_deps_str:
         parsed_dep = re.findall(setup_exp, dep)[0]
         setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
                                            if spec != ""]})
 
-    pipfile_data = pipfile.load(pipfile_name).data
+    setup_deps = split_ops_and_versions(setup_deps)
+    return setup_deps
+
+
+def get_pipfile_deps(pipfile_filename="Pipfile"):
+    """
+    Parses dependencies from specified Pipfile and
+    returns them as a dictionary
+
+    Args:
+        pipfile_filename (str, default "Pipfile"):
+            Location/name of file to be used as Pipfile
+    Returns:
+        tuple<dict<str, list<tuple<str, str>>>:
+            Dictionaries of the dependencies found in the Pipfile
+    """
+    pipfile_data = pipfile.load(pipfile_filename).data
     pipfile_deps = pipfile_data["default"]
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
         pipfile_deps[dep] = re.findall(spec_exp, dep_spec)
 
-    setup_deps = split_ops_and_versions(setup_deps)
     pipfile_deps = split_ops_and_versions(pipfile_deps)
 
-    return setup_deps, pipfile_deps
+    return pipfile_deps
 
 
 def split_ops_and_versions(deps):

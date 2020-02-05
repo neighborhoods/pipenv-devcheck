@@ -19,7 +19,7 @@ split_exp = "(" + ops_exp + ")(" + version_exp + ")"
 # Captures any additional specifications beyond the first one
 addtl_spec_exp = r"(?:(?:,\s*)" + spec_exp + ")?"
 
-# Full expression for setup.py
+# Full expression for matching dependencies in setup.py
 setup_exp = (
     r"([\w|\-]*)" +
     spec_exp +

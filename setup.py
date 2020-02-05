@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os
 import sys
 from shutil import rmtree
@@ -70,7 +69,7 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'pipenv-devcheck=pipenv_devcheck:compare_deps',
+            'pipenv-devcheck = pipenv_devcheck:main',
         ],
     },
     cmdclass={
