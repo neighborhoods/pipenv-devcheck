@@ -8,3 +8,5 @@ statreliability.egg-info
 *.egg-info/
 .coverage
 .pytest_cache/
+build/
+dist
