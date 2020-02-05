@@ -24,7 +24,6 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     print(setup_deps)
     print(pipfile_deps)
     run_checks(setup_deps, pipfile_deps)
-    return setup_deps, pipfile_deps
 
 
 def new():
