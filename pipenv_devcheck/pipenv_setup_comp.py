@@ -7,16 +7,17 @@ from pipenv_devcheck.check_fns import check_fn_mapping
 from pipenv_devcheck.regexps import setup_exp, spec_exp, split_exp
 
 
-def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
+def compare_deps(setup_name="setup.py", pipfile_name="Pipfile"):
     """
+    Main wrapper around reading dependencies and running all checks
 
     Args:
-        setup_filename (str, default "setup.py"):
+        setup_name (str, default "setup.py"):
             Location/name of file to be used as setup.py
-        pipfile_filename (str, default "Pipfile"):
+        pipfile_name (str, default "Pipfile"):
             Location/name of file to be used as Pipfile
     Returns:
-        tuple<str, str>:
+        tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
     setup_deps, pipfile_deps = get_deps()
@@ -24,9 +25,21 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     return setup_deps, pipfile_deps
 
 
-def get_deps():
+def get_deps(setup_name="setup.py", pipfile_name="Pipfile"):
+    """
+    Parses dependencies from specified files and returns them as a dictionary
+
+    Args:
+        setup_name (str, default "setup.py"):
+            Location/name of file to be used as setup.py
+        pipfile_name (str, default "Pipfile"):
+            Location/name of file to be used as Pipfile
+    Returns:
+        tuple<dict<str, list<tuple<str, str>>>:
+            Dictionaries of the dependencies found in setup.py and the Pipfile
+    """
     with mock.patch("setuptools.setup") as mock_setup:
-        exec(compile(open("setup.py", "rb").read(), "setup.py", 'exec'))
+        exec(compile(open(setup_name, "rb").read(), setup_name, 'exec'))
     args, kwargs = mock_setup.call_args
     setup_deps_str = kwargs["install_requires"]
     setup_deps = {}
@@ -35,7 +48,7 @@ def get_deps():
         setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
                                            if spec != ""]})
 
-    pipfile_data = pipfile.load("Pipfile").data
+    pipfile_data = pipfile.load(pipfile_name).data
     pipfile_deps = pipfile_data["default"]
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
@@ -48,6 +61,19 @@ def get_deps():
 
 
 def split_ops_and_versions(deps):
+    """
+    Splits string values in dependency dictionary into tuples containing
+    separate strings for the operator and the version
+
+    Args:
+        deps (dict<str, list<str>>):
+            Dependency dictionary with strings containing both operators
+            and versions as values
+    Returns:
+        tuple<dict<str, list<tuple<str, str>>>:
+            Dependency dictionary with operator/version string values split
+            into tuples
+    """
     for dep in deps.keys():
         specs = deps[dep]
         deps[dep] = [re.findall(split_exp, spec)[0] for spec in specs]
