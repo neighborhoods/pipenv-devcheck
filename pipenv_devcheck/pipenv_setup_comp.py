@@ -1,8 +1,11 @@
+import importlib
 from packaging.version import parse as parse_version
 import re
+import pipfile
+from unittest import mock
 
 from pipenv_devcheck.check_fns import check_fn_mapping
-from pipenv_devcheck.regexps import ops_exp, setup_exp, pipfile_exp
+from pipenv_devcheck.regexps import setup_exp, spec_exp, split_exp
 
 
 def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
@@ -17,108 +20,42 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
         tuple<str, str>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
-    setup_lines, pipfile_lines = read_dep_files(setup_filename,
-                                                pipfile_filename)
-
-    setup_deps_text = extract_deps_text(setup_lines, "setup")
-    pipfile_deps_text = extract_deps_text(pipfile_lines, "pipfile")
-    setup_deps = deps_text_to_dict(setup_deps_text, "setup")
-    pipfile_deps = deps_text_to_dict(pipfile_deps_text, "pipfile")
-
+    setup_deps, pipfile_deps = new()
+    print(setup_deps)
+    print(pipfile_deps)
     run_checks(setup_deps, pipfile_deps)
     return setup_deps, pipfile_deps
 
 
-def read_dep_files(setup_filename, pipfile_filename):
-    """
-    Reads text as an array of lines from files at specified names
-    """
-    with open(setup_filename, "r") as f:
-        setup_lines = f.readlines()
+def new():
+    with mock.patch("setuptools.setup") as mock_setup:
+        exec(compile(open("setup.py", "rb").read(), "setup.py", 'exec'))
+    print(mock_setup.call_args)
+    args, kwargs = mock_setup.call_args
+    setup_deps_str = kwargs["install_requires"]
+    print(setup_deps_str)
+    setup_deps = {}
+    for dep in setup_deps_str:
+        parsed_dep = re.findall(setup_exp, dep)[0]
+        setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
+                                           if spec != ""]})
 
-    with open(pipfile_filename, "r") as f:
-        pipfile_lines = f.readlines()
+    pipfile_data = pipfile.load("Pipfile").data
+    pipfile_deps = pipfile_data["default"]
+    for dep in pipfile_deps.keys():
+        dep_spec = pipfile_deps[dep]
+        pipfile_deps[dep] = re.findall(spec_exp, dep_spec)
 
-    return setup_lines, pipfile_lines
+    setup_deps = split_ops_and_versions(setup_deps)
+    pipfile_deps = split_ops_and_versions(pipfile_deps)
 
-
-def extract_deps_text(lines, type):
-    """
-    Constructs a single string containing only dependencies from the lines of
-    a dependency file
-
-    Args:
-        lines (list<str>):
-            Array of lines from dependency file
-        type (str):
-            Type of dependency file the lines are sourced from
-            (setup.py or Pipfile)
-    Returns:
-        str:
-            A single string containing only the dependency section extracteed
-            from a dependency file
-    """
-    deps_start_line = -1
-    deps_end_line = -1
-    is_setup = type == "setup"
-    if is_setup:
-        open_brackets = 0
-
-    for i in range(len(lines)):
-        if deps_end_line < 0:
-            current_line = lines[i]
-
-            if is_setup:
-                start_cond = "install_requires" in current_line
-                end_cond = open_brackets == 0
-            else:
-                start_cond = "[packages]" in current_line
-                end_cond = (re.search(r"\[\w*\]", current_line) or
-                            i == (len(lines) - 1))
-
-            if deps_start_line > 0 and end_cond:
-                deps_end_line = i - 1
-            if start_cond:
-                deps_start_line = i + 1
-
-            if is_setup:
-                open_brackets += current_line.count("[")
-                open_brackets -= current_line.count("]")
-
-    deps_joined = "".join(lines[deps_start_line:deps_end_line])
-    return deps_joined
+    return setup_deps, pipfile_deps
 
 
-def deps_text_to_dict(deps_text, type):
-    """
-    Converts single string of dependencies to a dictionary from
-    dependeny name keys to version specification values
-
-    Args:
-        deps_text (str):
-            String containing the dependency-specific section
-            of a dependency file
-        type (str):
-            What type of dependency file that deps_text was read from
-            (setup.py or Pipfile)
-    Returns:
-        dict<str, list<tuple<str, str>>>:
-                        Dictionary from dependency name keys to a list of
-                        tuples as a value, with the tuples containing
-                        a comparision operator and a version specification.
-    """
-    if type == "setup":
-        exp = setup_exp
-    elif type == "pipfile":
-        exp = pipfile_exp
-    deps = {}
-    for dep in re.findall(exp, deps_text):
-        dep_name = dep[0]
-        dep_specs = [dep_spec for dep_spec in dep[1:] if dep_spec != ""]
-        for dep_spec in dep_specs:
-            op_end = re.match(ops_exp, dep_spec).end()
-            deps[dep_name] = [(dep_spec[:op_end], dep_spec[op_end:])
-                              for dep_spec in dep_specs]
+def split_ops_and_versions(deps):
+    for dep in deps.keys():
+        specs = deps[dep]
+        deps[dep] = [re.findall(split_exp, spec)[0] for spec in specs]
     return deps
 
 
