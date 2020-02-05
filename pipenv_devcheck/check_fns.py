@@ -75,7 +75,7 @@ operators = {
     "=>": operator.ge,
     "<=": operator.le,
     "<": operator.lt,
-    ">": operator.gt
+    ">": operator.gt,
 }
 
 # Mapping from operator strings to relevant comparison functions

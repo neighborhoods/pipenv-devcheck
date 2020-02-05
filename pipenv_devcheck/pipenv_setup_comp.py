@@ -101,7 +101,8 @@ def split_ops_and_versions(deps):
     """
     for dep in deps.keys():
         specs = deps[dep]
-        deps[dep] = [re.findall(split_exp, spec)[0] for spec in specs]
+        if not (len(specs) == 1 and specs[0] == "*"):
+            deps[dep] = [re.findall(split_exp, spec)[0] for spec in specs]
     return deps
 
 
@@ -179,22 +180,24 @@ def version_check(setup_deps, pipfile_deps):
 
         for setup_dep_spec in setup_dep_specs:
             setup_op = setup_dep_spec[0]
-            setup_version = parse_version(setup_dep_spec[1])
+            if not setup_op == "*":
+                setup_version = parse_version(setup_dep_spec[1])
 
-            check_fn = check_fn_mapping[setup_op]
-            check_args = {}
-            if setup_op not in ["==", "!="]:
-                check_args["setup_op"] = setup_op
-            check_args["setup_version"] = setup_version
+                check_fn = check_fn_mapping[setup_op]
+                check_args = {}
+                if setup_op not in ["==", "!="]:
+                    check_args["setup_op"] = setup_op
+                check_args["setup_version"] = setup_version
 
-            for pipfile_dep_spec in pipfile_dep_specs:
-                pipfile_op = pipfile_dep_spec[0]
-                pipfile_version = parse_version(pipfile_dep_spec[1])
-                check_args["pipfile_op"] = pipfile_op
-                check_args["pipfile_version"] = pipfile_version
+                for pipfile_dep_spec in pipfile_dep_specs:
+                    pipfile_op = pipfile_dep_spec[0]
+                    if not pipfile_op == "*":
+                        pipfile_version = parse_version(pipfile_dep_spec[1])
+                        check_args["pipfile_op"] = pipfile_op
+                        check_args["pipfile_version"] = pipfile_version
 
-                if not check_fn(**check_args):
-                    problem_deps.append(dep_name)
+                        if not check_fn(**check_args):
+                            problem_deps.append(dep_name)
 
     if len(problem_deps):
         raise ValueError(

@@ -7,6 +7,8 @@ verify_ssl = true
 twine = "*"
 
 [packages]
+packaging = "==20.1"
+pipfile = "==0.0.2"
 
 [requires]
 python_version = "3.7"

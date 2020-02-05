@@ -66,10 +66,13 @@ setup(
     long_description_content_type="text/markdown",
     license=about["__license__"],
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        'packaging>=20.1',
+        'pipfile>=0.0.2'
+    ],
     entry_points={
         'console_scripts': [
-            'pipenv-devcheck = pipenv_devcheck:main',
+            'pipenv-devcheck=pipenv_devcheck.__main__:main',
         ],
     },
     cmdclass={

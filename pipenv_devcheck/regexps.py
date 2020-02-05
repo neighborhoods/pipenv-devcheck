@@ -13,7 +13,7 @@ ops_exp += ")"
 version_exp = r"[\d.]+"
 
 # Captures a full specification - an operator and a version.
-spec_exp = "(" + ops_exp + version_exp + ")"
+spec_exp = r"(?:(" + ops_exp + version_exp + ")|\\*)"
 # Captures a full specification, capturing the operator and version separately
 split_exp = "(" + ops_exp + ")(" + version_exp + ")"
 # Captures any additional specifications beyond the first one
