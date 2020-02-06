@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "==3.7.9"
 twine = "==3.1.1"
 pytest = "==5.3.5"
 pytest-mock = "==2.0.0"
