@@ -72,7 +72,6 @@ operators = {
     "==": operator.eq,
     "!=": operator.ne,
     ">=": operator.ge,
-    "=>": operator.ge,
     "<=": operator.le,
     "<": operator.lt,
     ">": operator.gt
@@ -83,7 +82,6 @@ check_fn_mapping = {
     "==": check_equality,
     "!=": check_inequality,
     ">=": check_range,
-    "=>": check_range,
     "<=": check_range,
     "<": check_range,
     ">": check_range

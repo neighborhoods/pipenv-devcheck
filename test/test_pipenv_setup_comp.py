@@ -1,76 +1,50 @@
 import pytest
 
-from pipenv_devcheck.pipenv_setup_comp import (extract_deps_text,
-                                               deps_text_to_dict,
+from pipenv_devcheck.pipenv_setup_comp import (get_setup_deps,
+                                               get_pipfile_deps,
+                                               split_ops_and_versions,
                                                name_equality_check,
                                                version_check)
 
 
-def test_extract_deps_text_setup(setup_lines, setup_deps_text):
+def test_get_setup_deps(setup_deps):
     """
-    Tests that setup.py dependencies are successfully read and extracted into
-    a single string
+    Tests that dependencies are properly read and parsed from a setup.py file
 
     Args:
-        setup_lines (list<str>, pytest.fixture):
-            Full setup.py file as a list of strings
-        setup_deps_text (str, pytest.fixture):
-            Section of setup.py that is specific to dependencies
-    """
-    expected_deps_text = setup_deps_text
-
-    actual_deps_text = extract_deps_text(setup_lines, "setup")
-    assert actual_deps_text == expected_deps_text
-
-
-def test_extract_deps_text_pipfile(pipfile_lines, pipfile_deps_text):
-    """
-    Tests that Pipfile dependencies are successfully read and extracted into
-    a single string
-
-    Args:
-        pipfile_lines (list<str>, pytest.fixture):
-            Full Pipfile as a list of strings
-        pipfile_deps_text (str, pytest.fixture):
-            Section of Pipfile that is specific todependencies
-    """
-    expected_deps_text = pipfile_deps_text
-
-    actual_deps_text = extract_deps_text(pipfile_lines, "pipfile")
-    assert actual_deps_text == expected_deps_text
-
-
-def test_deps_text_to_dict_setup(setup_deps_text, setup_deps):
-    """
-    Tests that setup.py dependencies are successfully
-    translated to a dictionary
-
-    Args:
-        setup_deps_text (str, pytest.fixture):
-           Section of setup.py that is specific to dependencies
         setup_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
-           setup.py dependencies extracted from a string into a dict
+            setup.py dependencies extracted from a string into a dict
     """
-    expected_dep_dict = setup_deps
-
-    dep_dict = deps_text_to_dict(setup_deps_text, "setup")
-    assert dep_dict == expected_dep_dict
+    actual_deps = get_setup_deps("test/test_deps/dummy_setup.py")
+    assert actual_deps == setup_deps
 
 
-def test_deps_text_to_dict_pipfile(pipfile_deps_text, pipfile_deps):
+def test_get_pipfile_deps(pipfile_deps):
     """
-    Tests that Pipfile dependencies are successfully translated to a dictionary
+    Tests that dependencies are properly read and parsed from a Pipfile
 
     Args:
-        pipfile_deps_text (str, pytest.fixture):
-            Section of Pipfile that is specific to dependencies
         pipfile_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
             Pipfile dependencies extracted from a string into a dict
     """
-    expected_dep_dict = pipfile_deps
+    actual_deps = get_pipfile_deps("test/test_deps/dummy_Pipfile")
+    assert actual_deps == pipfile_deps
 
-    dep_dict = deps_text_to_dict(pipfile_deps_text, "pipfile")
-    assert dep_dict == expected_dep_dict
+
+def test_split_ops_and_versions(deps_from_read, pipfile_deps):
+    """
+    Tests that dependency specification strings (operator and version) are
+    properly split into a tuple
+
+    Args:
+        deps_from_read (dict<str, list<str>>, pytest.fixture):
+            Dependencies as they would be returned by
+            either read_setup or read_pipfile
+        pipfile_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
+            Pipfile dependencies extracted from a string into a dict
+    """
+    actual_deps = split_ops_and_versions(deps_from_read)
+    assert actual_deps == pipfile_deps
 
 
 def test_name_equality_check_valid(setup_deps, pipfile_deps):

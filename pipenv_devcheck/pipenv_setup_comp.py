@@ -26,7 +26,7 @@ def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
     return setup_deps, pipfile_deps
 
 
-def get_setup_deps(setup_filename):
+def get_setup_deps(setup_filename="setup.py"):
     """
     Parses dependencies from specified setup file and
     returns them as a dictionary
@@ -40,7 +40,6 @@ def get_setup_deps(setup_filename):
     """
     with open(setup_filename, "r") as f:
         setup_tree = ast.parse(f.read(), setup_filename)
-
     for node in ast.walk(setup_tree):
         is_setup_node = (hasattr(node, "func") and
                          hasattr(node.func, "id") and
@@ -51,12 +50,15 @@ def get_setup_deps(setup_filename):
     for kw in setup_node.keywords:
         if kw.arg == "install_requires":
             setup_deps_str = ast.literal_eval(kw.value)
-
     setup_deps = {}
     for dep in setup_deps_str:
-        parsed_dep = re.findall(setup_exp, dep)[0]
-        setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
-                                           if spec != ""]})
+        parsed_dep = re.findall(setup_exp, dep)
+        if len(parsed_dep):
+            parsed_dep = parsed_dep[0]
+            setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
+                                               if spec != ""]})
+        else:
+            setup_deps.update({dep: ["*"]})
 
     setup_deps = split_ops_and_versions(setup_deps)
     return setup_deps
