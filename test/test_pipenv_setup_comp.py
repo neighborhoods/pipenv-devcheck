@@ -1,13 +1,21 @@
 import pytest
 
-from pipenv_devcheck.pipenv_setup_comp import (get_setup_deps,
-                                               get_pipfile_deps,
-                                               split_ops_and_versions,
-                                               name_equality_check,
-                                               version_check)
+from pipenv_devcheck.pipenv_setup_comp import (
+    read_setup, read_pipfile, get_setup_deps, get_pipfile_deps,
+    split_ops_and_versions, name_equality_check, version_check)
 
 
-def test_get_setup_deps(setup_deps):
+def test_read_setup(setup_deps_from_read):
+    read_results = read_setup("test/test_deps/dummy_setup.py")
+    assert read_results == setup_deps_from_read
+
+
+def test_read_pipfile(pipfile_deps_from_read):
+    read_results = read_pipfile("test/test_deps/dummy_Pipfile")
+    assert read_results == pipfile_deps_from_read
+
+
+def test_get_setup_deps(mocker, setup_deps_from_read, setup_deps):
     """
     Tests that dependencies are properly read and parsed from a setup.py file
 
@@ -15,11 +23,13 @@ def test_get_setup_deps(setup_deps):
         setup_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
             setup.py dependencies extracted from a string into a dict
     """
+    mocker.patch("pipenv_devcheck.pipenv_setup_comp.read_setup",
+                 return_value=setup_deps_from_read)
     actual_deps = get_setup_deps("test/test_deps/dummy_setup.py")
     assert actual_deps == setup_deps
 
 
-def test_get_pipfile_deps(pipfile_deps):
+def test_get_pipfile_deps(mocker, pipfile_deps_from_read, pipfile_deps):
     """
     Tests that dependencies are properly read and parsed from a Pipfile
 
@@ -27,11 +37,13 @@ def test_get_pipfile_deps(pipfile_deps):
         pipfile_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
             Pipfile dependencies extracted from a string into a dict
     """
+    mocker.patch("pipenv_devcheck.pipenv_setup_comp.read_pipfile",
+                 return_value=pipfile_deps_from_read)
     actual_deps = get_pipfile_deps("test/test_deps/dummy_Pipfile")
     assert actual_deps == pipfile_deps
 
 
-def test_split_ops_and_versions(deps_from_read, pipfile_deps):
+def test_split_ops_and_versions(deps_unsplit, pipfile_deps):
     """
     Tests that dependency specification strings (operator and version) are
     properly split into a tuple
@@ -43,7 +55,7 @@ def test_split_ops_and_versions(deps_from_read, pipfile_deps):
         pipfile_deps (dict<str, list<tuple<str, str>>>), pytest.fixture):
             Pipfile dependencies extracted from a string into a dict
     """
-    actual_deps = split_ops_and_versions(deps_from_read)
+    actual_deps = split_ops_and_versions(deps_unsplit)
     assert actual_deps == pipfile_deps
 
 

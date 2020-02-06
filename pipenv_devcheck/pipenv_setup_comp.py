@@ -38,18 +38,8 @@ def get_setup_deps(setup_filename="setup.py"):
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py
     """
-    with open(setup_filename, "r") as f:
-        setup_tree = ast.parse(f.read(), setup_filename)
-    for node in ast.walk(setup_tree):
-        is_setup_node = (hasattr(node, "func") and
-                         hasattr(node.func, "id") and
-                         node.func.id == "setup")
-        if is_setup_node:
-            setup_node = node
+    setup_deps_str = read_setup(setup_filename)
 
-    for kw in setup_node.keywords:
-        if kw.arg == "install_requires":
-            setup_deps_str = ast.literal_eval(kw.value)
     setup_deps = {}
     for dep in setup_deps_str:
         parsed_dep = re.findall(setup_exp, dep)
@@ -64,6 +54,24 @@ def get_setup_deps(setup_filename="setup.py"):
     return setup_deps
 
 
+def read_setup(setup_filename):
+    """
+    """
+    with open(setup_filename, "r") as f:
+        setup_tree = ast.parse(f.read(), setup_filename)
+    for node in ast.walk(setup_tree):
+        is_setup_node = (hasattr(node, "func") and
+                         hasattr(node.func, "id") and
+                         node.func.id == "setup")
+        if is_setup_node:
+            setup_node = node
+
+    for kw in setup_node.keywords:
+        if kw.arg == "install_requires":
+            setup_deps_str = ast.literal_eval(kw.value)
+            return setup_deps_str
+
+
 def get_pipfile_deps(pipfile_filename="Pipfile"):
     """
     Parses dependencies from specified Pipfile and
@@ -76,14 +84,22 @@ def get_pipfile_deps(pipfile_filename="Pipfile"):
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in the Pipfile
     """
-    pipfile_data = pipfile.load(pipfile_filename).data
-    pipfile_deps = pipfile_data["default"]
+    pipfile_deps = read_pipfile(pipfile_filename)
+    print(pipfile_deps)
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
         pipfile_deps[dep] = re.findall(spec_exp, dep_spec)
 
     pipfile_deps = split_ops_and_versions(pipfile_deps)
 
+    return pipfile_deps
+
+
+def read_pipfile(pipfile_filename):
+    """
+    """
+    pipfile_data = pipfile.load(pipfile_filename).data
+    pipfile_deps = pipfile_data["default"]
     return pipfile_deps
 
 
