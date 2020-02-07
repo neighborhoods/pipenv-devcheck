@@ -7,38 +7,30 @@ from pipenv_devcheck.check_fns import check_fn_mapping
 from pipenv_devcheck.regexps import setup_exp, spec_exp, split_exp
 
 
-def compare_deps(setup_filename="setup.py", pipfile_filename="Pipfile"):
+def compare_deps():
     """
     Main wrapper around reading dependencies and running all checks
 
-    Args:
-        setup_filename (str, default "setup.py"):
-            Location/name of file to be used as setup.py
-        pipfile_filename (str, default "Pipfile"):
-            Location/name of file to be used as Pipfile
     Returns:
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
-    setup_deps = get_setup_deps(setup_filename)
-    pipfile_deps = get_pipfile_deps(pipfile_filename)
+    setup_deps = get_setup_deps()
+    pipfile_deps = get_pipfile_deps()
     run_checks(setup_deps, pipfile_deps)
     return setup_deps, pipfile_deps
 
 
-def get_setup_deps(setup_filename="setup.py"):
+def get_setup_deps():
     """
-    Parses dependencies from specified setup file and
+    Parses dependencies from setup.py and
     returns them as a dictionary
 
-    Args:
-        setup_filename (str, default "setup.py"):
-            Location/name of file to be used as setup.py
     Returns:
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py
     """
-    setup_deps_str = read_setup(setup_filename)
+    setup_deps_str = read_setup()
 
     setup_deps = {}
     for dep in setup_deps_str:
@@ -54,11 +46,16 @@ def get_setup_deps(setup_filename="setup.py"):
     return setup_deps
 
 
-def read_setup(setup_filename):
+def read_setup():
     """
+    Reads dependencies from setup.py and does preprocessing
+
+    Returns:
+        list<str>: A list of the dependency lines from setup.py
     """
-    with open(setup_filename, "r") as f:
-        setup_tree = ast.parse(f.read(), setup_filename)
+    filename = "setup.py"
+    with open(filename, "r") as f:
+        setup_tree = ast.parse(f.read(), filename)
     for node in ast.walk(setup_tree):
         is_setup_node = (hasattr(node, "func") and
                          hasattr(node.func, "id") and
@@ -72,19 +69,16 @@ def read_setup(setup_filename):
             return setup_deps_str
 
 
-def get_pipfile_deps(pipfile_filename="Pipfile"):
+def get_pipfile_deps():
     """
-    Parses dependencies from specified Pipfile and
+    Parses dependencies from  Pipfile and
     returns them as a dictionary
 
-    Args:
-        pipfile_filename (str, default "Pipfile"):
-            Location/name of file to be used as Pipfile
     Returns:
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in the Pipfile
     """
-    pipfile_deps = read_pipfile(pipfile_filename)
+    pipfile_deps = read_pipfile()
     print(pipfile_deps)
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
@@ -95,10 +89,16 @@ def get_pipfile_deps(pipfile_filename="Pipfile"):
     return pipfile_deps
 
 
-def read_pipfile(pipfile_filename):
+def read_pipfile():
     """
+    Reads dependencies from Pipfile and does preprocessing
+
+    Returns:
+        dict<str, str>: A dict of the dependencies in Pipfile, from
+        package name keys to version specification values
     """
-    pipfile_data = pipfile.load(pipfile_filename).data
+    filename = "Pipfile"
+    pipfile_data = pipfile.load(filename).data
     pipfile_deps = pipfile_data["default"]
     return pipfile_deps
 

@@ -5,13 +5,21 @@ from pipenv_devcheck.pipenv_setup_comp import (
     split_ops_and_versions, name_equality_check, version_check)
 
 
-def test_read_setup(setup_deps_from_read):
-    read_results = read_setup("test/test_deps/dummy_setup.py")
+def test_read_setup(mocker, setup_text, setup_deps_from_read):
+    """
+    Tests that setup.py reading functions as expected
+    """
+    mocker.patch("builtins.open", mocker.mock_open(read_data=setup_text))
+    read_results = read_setup()
     assert read_results == setup_deps_from_read
 
 
-def test_read_pipfile(pipfile_deps_from_read):
-    read_results = read_pipfile("test/test_deps/dummy_Pipfile")
+def test_read_pipfile(mocker, pipfile_text, pipfile_deps_from_read):
+    """
+    Tests that Pipfile reading functions as expected
+    """
+    mocker.patch("builtins.open", mocker.mock_open(read_data=pipfile_text))
+    read_results = read_pipfile()
     assert read_results == pipfile_deps_from_read
 
 
@@ -25,7 +33,7 @@ def test_get_setup_deps(mocker, setup_deps_from_read, setup_deps):
     """
     mocker.patch("pipenv_devcheck.pipenv_setup_comp.read_setup",
                  return_value=setup_deps_from_read)
-    actual_deps = get_setup_deps("test/test_deps/dummy_setup.py")
+    actual_deps = get_setup_deps()
     assert actual_deps == setup_deps
 
 
@@ -39,7 +47,7 @@ def test_get_pipfile_deps(mocker, pipfile_deps_from_read, pipfile_deps):
     """
     mocker.patch("pipenv_devcheck.pipenv_setup_comp.read_pipfile",
                  return_value=pipfile_deps_from_read)
-    actual_deps = get_pipfile_deps("test/test_deps/dummy_Pipfile")
+    actual_deps = get_pipfile_deps()
     assert actual_deps == pipfile_deps
 
 
