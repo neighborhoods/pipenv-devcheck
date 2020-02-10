@@ -68,7 +68,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'packaging>=20.1',
-        'pipfile'
+        'pipfile>=0.0.2'
     ],
     entry_points={
         'console_scripts': [
