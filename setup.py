@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import os
 import sys
 from shutil import rmtree
@@ -67,10 +66,13 @@ setup(
     long_description_content_type="text/markdown",
     license=about["__license__"],
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        'packaging>=20.1',
+        'pipfile'
+    ],
     entry_points={
         'console_scripts': [
-            'pipenv-devcheck=pipenv_devcheck:compare_deps',
+            'pipenv-devcheck=pipenv_devcheck.__main__:main',
         ],
     },
     cmdclass={

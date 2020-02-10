@@ -13,25 +13,16 @@ ops_exp += ")"
 version_exp = r"[\d.]+"
 
 # Captures a full specification - an operator and a version.
-spec_exp = "(" + ops_exp + version_exp + ")"
+spec_exp = r"(\s*" + ops_exp + r"\s*" + version_exp + "|\\*)"
+# Captures a full specification, capturing the operator and version separately
+split_exp = "(" + ops_exp + r")\s*(" + version_exp + ")"
 # Captures any additional specifications beyond the first one
-addtl_spec_exp = r"(?:(?:,\s*)" + spec_exp + ")?"
+addtl_spec_exp = r"(?:," + spec_exp + ")?"
 
-# Full expression for setup.py
+# Full expression for matching dependencies in setup.py
 setup_exp = (
-    r"'([\w|\-]*)" +
-    spec_exp +
-    addtl_spec_exp +
-    addtl_spec_exp +
-    "'"
-)
-
-# Full expression for Pipfile
-pipfile_exp = (
     r"([\w|\-]*)" +
-    r"(?:\s*=\s*\")" +
     spec_exp +
     addtl_spec_exp +
-    addtl_spec_exp +
-    "\""
+    addtl_spec_exp
 )

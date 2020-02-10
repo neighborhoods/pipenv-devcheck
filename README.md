@@ -24,18 +24,6 @@ with helping users debug due to a hidden environment difference.
 After installation, simply run `pipenv-devcheck` at the root of a package
 via the command line to use!
 
-## Visible Examples ##
-To interact with this tool and see how its output will be displayed, simply modify
-`demo/demo_Pipfile` and `demo/demo_setup.py` to introduce various version
-discrepancies, and then run the following code:
-
-```
-import pipenv_devcheck
-
-pipenv_devcheck.compare_deps("test/test_deps/dummy_setup.py".
-                             "test/test_deps/dummy_Pipfile")
-```
-
 ## Disclaimer ##
 This tool is not designed to check for implicit compatibility issues between
 package versions. It will only check if the version numbers specified in a
