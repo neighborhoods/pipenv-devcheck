@@ -79,7 +79,6 @@ def get_pipfile_deps():
             Dictionaries of the dependencies found in the Pipfile
     """
     pipfile_deps = read_pipfile()
-    print(pipfile_deps)
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
         pipfile_deps[dep] = re.findall(spec_exp, dep_spec)

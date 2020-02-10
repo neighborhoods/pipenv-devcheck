@@ -1,3 +1,6 @@
+# v0.2.1 #
+* Removed forgotten trace statement
+
 # v0.2.0 #
 * Parsing dependencies is not purely regexp-based now. More flexible and
 less opportunity for blind spots
