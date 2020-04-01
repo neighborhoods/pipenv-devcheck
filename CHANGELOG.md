@@ -1,3 +1,6 @@
+# v0.2.4 #
+* Updated dependencies - specifically, addressed security concern with bleach v3.1.3
+
 # v0.2.3 #
 * Updated dependencies - specifically, addressed security concern with bleach v3.1.1
 
