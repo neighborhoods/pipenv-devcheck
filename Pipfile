@@ -12,7 +12,7 @@ pytest-mock = "==2.0.0"
 [packages]
 packaging = "==20.1"
 pipfile = "==0.0.2"
-bleach = ">=3.1.2"
+bleach = ">=3.1.4"
 
 [requires]
 python_version = "3.7"
