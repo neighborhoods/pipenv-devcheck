@@ -201,19 +201,19 @@ def version_check(setup_deps, pipfile_deps):
                 setup_version = parse_version(setup_dep_spec[1])
 
                 check_fn = check_fn_mapping[setup_op]
-                check_args = {}
+                check_args = []
                 if setup_op not in ["==", "!="]:
-                    check_args["setup_op"] = setup_op
-                check_args["setup_version"] = setup_version
+                    check_args.append(setup_op)
+                check_args.append(setup_version)
 
                 for pipfile_dep_spec in pipfile_dep_specs:
                     pipfile_op = pipfile_dep_spec[0]
                     if not pipfile_op == "*":
                         pipfile_version = parse_version(pipfile_dep_spec[1])
-                        check_args["pipfile_op"] = pipfile_op
-                        check_args["pipfile_version"] = pipfile_version
+                        check_args.append(pipfile_op)
+                        check_args.append(pipfile_version)
 
-                        if not check_fn(**check_args):
+                        if not check_fn(*check_args):
                             problem_deps.append(dep_name)
 
     if len(problem_deps):

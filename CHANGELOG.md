@@ -1,3 +1,7 @@
+# v0.2.5 #
+* Fixed bug that caused situations where equality (`==`) in the Pipfile combined
+with a range operator would lead to detection of nonexistent discrepancies.
+
 # v0.2.4 #
 * Updated dependencies - specifically, addressed security concern with bleach v3.1.3
 
