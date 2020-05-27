@@ -22,7 +22,7 @@ def check_equality(left_version, right_op, right_version, **_):
     return operators[right_op](left_version, right_version)
 
 
-def check_inequality(left_version, right_op, pipfile_version):
+def check_inequality(left_version, right_op, pipfile_version, **_):
     """
     Checks for version compatibility when the dependency for
     'left_version' has specified an explicitly disallowed version
@@ -34,6 +34,9 @@ def check_inequality(left_version, right_op, pipfile_version):
             The comparison operator to be used, associated with 'right_version'
         pipfile_version (packaging.version.Version):
             The version specified in the Pipfile
+        **_ (dict):
+            Unused **kwargs. Present to allow this function to accept
+            'left_op' arguments
     Returns:
         bool: Whether or not the check passed
     """
