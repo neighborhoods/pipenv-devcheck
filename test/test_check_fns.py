@@ -31,9 +31,10 @@ def test_invalid_range():
 
 def test_valid_equality():
     """
-    Tests that compatible version equalities pass checks
+    Tests that compatible version equalities pass checks -
+    includes a case where 'left_op' if provided
     """
-    assert check_equality(left_version="1.2.3", left_op='==', 
+    assert check_equality(left_version="1.2.3", left_op='==',
                           right_op="<", right_version="3.2.1")
     assert check_equality("1.2.3", "==", "1.2.3")
 
