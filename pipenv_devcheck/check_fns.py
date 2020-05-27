@@ -13,6 +13,9 @@ def check_equality(left_version, right_op, right_version, **_):
             The comparison operator to be used, associated with 'right_version'
         right_version (packaging.version.Version):
             The version on the right side of the comparison
+        **_ (dict):
+            Unused **kwargs. Present to allow this function to accept
+            'left_op' arguments
     Returns:
         bool: Whether or not the check passed
     """
