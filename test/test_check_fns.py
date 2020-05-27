@@ -33,7 +33,8 @@ def test_valid_equality():
     """
     Tests that compatible version equalities pass checks
     """
-    assert check_equality("1.2.3", "<", "3.2.1")
+    assert check_equality(left_version="1.2.3", left_op='==', 
+                          right_op="<", right_version="3.2.1")
     assert check_equality("1.2.3", "==", "1.2.3")
 
 

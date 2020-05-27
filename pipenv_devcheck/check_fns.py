@@ -1,7 +1,7 @@
 import operator
 
 
-def check_equality(left_version, right_op, right_version):
+def check_equality(left_version, right_op, right_version, **_):
     """
     Checks for version compatibility when the dependency for
     'left_version' has specified an exact version
