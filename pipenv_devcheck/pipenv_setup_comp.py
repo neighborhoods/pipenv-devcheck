@@ -211,7 +211,7 @@ def version_check(setup_deps, pipfile_deps):
                         pipfile_version = parse_version(pipfile_dep_spec[1])
                         check_args["right_op"] = pipfile_op
                         check_args["right_version"] = pipfile_version
-                        print(check_args)
+
                         if not check_fn(**check_args):
                             problem_deps.append(dep_name)
 
