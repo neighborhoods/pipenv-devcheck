@@ -81,6 +81,8 @@ def get_pipfile_deps():
     pipfile_deps = read_pipfile()
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
+        if isinstance(dep_spec, dict):
+            dep_spec = dep_spec['version']
         pipfile_deps[dep] = re.findall(spec_exp, dep_spec)
 
     pipfile_deps = split_ops_and_versions(pipfile_deps)
