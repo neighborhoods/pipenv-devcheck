@@ -12,6 +12,7 @@ ops_exp += ")"
 # TODO - Add support for letters, like in beta releases?
 version_exp = r"[\d.]+"
 
+# Captures the name of a package
 package_name_exp = r"([\w|\-]*)"
 # Captures a full specification - an operator and a version.
 spec_exp = r"(\s*" + ops_exp + r"\s*" + version_exp + "|\\*)"
@@ -28,5 +29,7 @@ setup_spec_exp = (
     addtl_spec_exp
 )
 
+# Captures extras included in dependencies in setup.py
 setup_extras_exp = r'(?:\[([\w\-, ]*)\])'
+# Catures extras included in dependencies in setup.py, including package names
 setup_extras_w_name_exp = package_name_exp + setup_extras_exp

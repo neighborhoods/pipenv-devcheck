@@ -29,8 +29,10 @@ def get_setup_deps():
     returns them as a dictionary
 
     Returns:
-        tuple<dict<str, list<tuple<str, str>>>:
-            Dictionaries of the dependencies found in setup.py
+        setup_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary of the dependencies found in setup.py
+        setup_extras (dict<str, list<str>>):
+            Dictionary of extras specified in setup.py
     """
     setup_deps_str = read_setup()
 
@@ -90,8 +92,10 @@ def get_pipfile_deps():
     returns them as a dictionary
 
     Returns:
-        tuple<dict<str, list<tuple<str, str>>>:
-            Dictionaries of the dependencies found in the Pipfile
+        pipfile_deps (dict<str, list<tuple<str, str>>>):
+            Dictionaryof the dependencies found in the Pipfile
+        pipfile_extras (dict<str, list<str>>):
+            Dictionary of extras specified in the Pipfile
     """
     pipfile_deps = read_pipfile()
 
@@ -151,27 +155,6 @@ def run_checks(setup_deps, setup_extras, pipfile_deps, pipfile_extras):
     name_equality_check(setup_deps, pipfile_deps)
     version_check(setup_deps, pipfile_deps)
     extras_equality_check(setup_extras, pipfile_extras)
-
-
-def extras_equality_check(setup_extras, pipfile_extras):
-    if setup_extras.keys() != pipfile_extras.keys():
-        setup_deps = set(setup_extras.keys())
-        pipfile_deps = set(pipfile_extras.keys())
-        raise KeyError('There is a discrepancy in what packages have extras '
-                       'specified between setup.py and the Pipfile. '
-                       'Packages involved in discrepancy: '
-                       ', '.join(setup_deps.symmetric_difference(pipfile_deps))
-                       )
-
-    deps_w_mismatched_extras = []
-    for dep in setup_extras.keys():
-        if setup_extras[dep] != pipfile_extras[dep]:
-            deps_w_mismatched_extras.append(dep)
-
-    if deps_w_mismatched_extras:
-        raise ValueError('The following dependencies have mismatched '
-                         'package extras between setup.py and the Pipfile: '
-                         ', '.join(deps_w_mismatched_extras))
 
 
 def name_equality_check(setup_deps, pipfile_deps):
@@ -263,4 +246,39 @@ def version_check(setup_deps, pipfile_deps):
             "Dependency discrepancies between Pipfile and setup.py "
             "are present in the following packages: " +
             ", ".join(problem_deps))
+    return True
+
+
+def extras_equality_check(setup_extras, pipfile_extras):
+    """
+    Checks that all packages that specify extras in one dependency file
+    also specify them in the other dependency file, and that those extras
+    match across files.
+
+    Args:
+        setup_extras (dict<str, list<str>>):
+            Dictionary of extras specified in setup.py
+        pipfile_extras (dict<str, list<str>>):
+            Dictionary of extras specified in the Pipfile
+    """
+    if setup_extras.keys() != pipfile_extras.keys():
+        setup_deps = set(setup_extras.keys())
+        pipfile_deps = set(pipfile_extras.keys())
+        discrepancy_deps = setup_deps.symmetric_difference(pipfile_deps)
+        discrepancy_deps_str = ', '.join(discrepancy_deps)
+        raise KeyError('There is a discrepancy in what packages have extras '
+                       'specified between setup.py and the Pipfile. '
+                       'Packages involved in discrepancy: ' +
+                       discrepancy_deps_str)
+
+    deps_w_mismatched_extras = []
+    for dep in setup_extras.keys():
+        if setup_extras[dep] != pipfile_extras[dep]:
+            deps_w_mismatched_extras.append(dep)
+
+    if deps_w_mismatched_extras:
+        deps_w_mismatched_extras_str = ', '.join(deps_w_mismatched_extras)
+        raise ValueError('The following dependencies have mismatched '
+                         'package extras between setup.py and the Pipfile: ' +
+                         deps_w_mismatched_extras_str)
     return True
