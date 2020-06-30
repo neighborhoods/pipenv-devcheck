@@ -93,7 +93,7 @@ def get_pipfile_deps():
 
     Returns:
         pipfile_deps (dict<str, list<tuple<str, str>>>):
-            Dictionaryof the dependencies found in the Pipfile
+            Dictionary of the dependencies found in the Pipfile
         pipfile_extras (dict<str, list<str>>):
             Dictionary of extras specified in the Pipfile
     """
