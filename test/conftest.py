@@ -16,8 +16,8 @@ setup(
         packages=find_packages(),
         install_requires=[
                 'matplotlib>=3.1.1',
-                'numpy>=1.17.2',
-                'pandas>=0.25.1',
+                'pyhive[hive, presto]>=0.6.0',
+                'pandas[fake_extra]>=0.25.1',
                 'seaborn>=0.9.0',
                 'simple_salesforce>=0.74.3'
         ]
@@ -30,23 +30,29 @@ def setup_deps_from_read():
     """setup.py dependencies extracted from a string into a dict"""
     return [
         'matplotlib>=3.1.1',
-        'numpy>=1.17.2',
-        'pandas>=0.25.1',
+        'pyhive[hive, presto]>=0.6.0',
+        'pandas[fake_extra]>=0.25.1',
         'seaborn>=0.9.0',
         'simple_salesforce>=0.74.3'
     ]
 
 
 @pytest.fixture()
-def setup_deps():
+def setup_deps_and_extras():
     """setup.py dependencies extracted from a string into a dict"""
-    return {
+    return (
+        {
             "matplotlib": [(">=", "3.1.1")],
-            "numpy": [(">=", "1.17.2")],
+            "pyhive": [(">=", "0.6.0")],
             "pandas": [(">=", "0.25.1")],
             "seaborn": [(">=", "0.9.0")],
             "simple_salesforce": [(">=", "0.74.3")]
-    }
+        },
+        {
+            "pyhive": ["hive", "presto"],
+            "pandas": ["fake_extra"]
+        }
+    )
 
 
 @pytest.fixture
@@ -60,8 +66,8 @@ verify_ssl = true
 
 [packages]
 matplotlib = ">=3.1.1, <=3.1.2"
-numpy = "==1.17.2"
-pandas = "==0.25.1"
+pyhive = {extras = ["hive", "presto"], version = "==0.6.1"}
+pandas = {extras = ["fake_extra"], version = "==0.25.1"}
 seaborn = "==0.9.0"
 simple_salesforce = "==0.74.3"
 
@@ -75,23 +81,29 @@ def pipfile_deps_from_read():
     """Pipfile dependencies extracted from a string into a dict"""
     return {
             "matplotlib": ">=3.1.1, <=3.1.2",
-            "numpy": "==1.17.2",
-            "pandas": "==0.25.1",
+            "pyhive": {"extras": ["hive", "presto"], "version": "==0.6.1"},
+            "pandas": {"extras": ["fake_extra"], "version": "==0.25.1"},
             "seaborn": "==0.9.0",
             "simple_salesforce": "==0.74.3"
     }
 
 
 @pytest.fixture
-def pipfile_deps():
+def pipfile_deps_and_extras():
     """Pipfile dependencies extracted from a string into a dict"""
-    return {
+    return (
+        {
             "matplotlib": [(">=", "3.1.1"), ("<=", "3.1.2")],
-            "numpy": [("==", "1.17.2")],
+            "pyhive": [("==", "0.6.1")],
             "pandas": [("==", "0.25.1")],
             "seaborn": [("==", "0.9.0")],
             "simple_salesforce": [("==", "0.74.3")]
-    }
+        },
+        {
+            "pyhive": ["hive", "presto"],
+            "pandas": ["fake_extra"]
+        }
+    )
 
 
 @pytest.fixture
@@ -99,8 +111,20 @@ def deps_unsplit():
     """Section of pipfile that is specific to dependencies"""
     return {
         "matplotlib": [">=3.1.1", "<=3.1.2"],
-        "numpy": ["==1.17.2"],
+        "pyhive": ["==0.6.1"],
         "pandas": ["==0.25.1"],
         "seaborn": ["==0.9.0"],
         "simple_salesforce": ["==0.74.3"]
+    }
+
+
+@pytest.fixture
+def test_extras():
+    """
+    A valid dict of extras as would be returned by 'get_setup_deps'
+    or 'get_pipfile_deps'
+    """
+    return {
+        'pyhive': ['hive', 'presto'],
+        'testpackage': ['extra0', 'extra1']
     }

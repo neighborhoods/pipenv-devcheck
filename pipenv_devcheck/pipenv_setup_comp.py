@@ -4,7 +4,9 @@ import pipfile
 import re
 
 from pipenv_devcheck.check_fns import check_fn_mapping
-from pipenv_devcheck.regexps import setup_exp, spec_exp, split_exp
+from pipenv_devcheck.regexps import (setup_spec_exp, setup_extras_exp,
+                                     setup_extras_w_name_exp,
+                                     spec_exp, split_exp)
 
 
 def compare_deps():
@@ -15,9 +17,9 @@ def compare_deps():
         tuple<dict<str, list<tuple<str, str>>>:
             Dictionaries of the dependencies found in setup.py and the Pipfile
     """
-    setup_deps = get_setup_deps()
-    pipfile_deps = get_pipfile_deps()
-    run_checks(setup_deps, pipfile_deps)
+    setup_deps, setup_extras = get_setup_deps()
+    pipfile_deps, pipfile_extras = get_pipfile_deps()
+    run_checks(setup_deps, setup_extras, pipfile_deps, pipfile_extras)
     return setup_deps, pipfile_deps
 
 
@@ -27,14 +29,29 @@ def get_setup_deps():
     returns them as a dictionary
 
     Returns:
-        tuple<dict<str, list<tuple<str, str>>>:
-            Dictionaries of the dependencies found in setup.py
+        setup_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary of the dependencies found in setup.py
+        setup_extras (dict<str, list<str>>):
+            Dictionary of extras specified in setup.py
     """
     setup_deps_str = read_setup()
 
+    setup_extras = {}
+    for i in range(len(setup_deps_str)):
+        current_dep_str = setup_deps_str[i]
+        extras_match = re.search(setup_extras_exp, current_dep_str)
+        if extras_match:
+            extras_info = re.findall(setup_extras_w_name_exp,
+                                     current_dep_str)[0]
+            dep = extras_info[0]
+            extras = [extra.strip() for extra in extras_info[1].split(',')]
+            setup_extras[dep] = extras
+
+            setup_deps_str[i] = (current_dep_str[:extras_match.start()] +
+                                 current_dep_str[extras_match.end():])
     setup_deps = {}
     for dep in setup_deps_str:
-        parsed_dep = re.findall(setup_exp, dep)
+        parsed_dep = re.findall(setup_spec_exp, dep)
         if len(parsed_dep):
             parsed_dep = parsed_dep[0]
             setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
@@ -43,7 +60,7 @@ def get_setup_deps():
             setup_deps.update({dep: ["*"]})
 
     setup_deps = split_ops_and_versions(setup_deps)
-    return setup_deps
+    return setup_deps, setup_extras
 
 
 def read_setup():
@@ -75,19 +92,25 @@ def get_pipfile_deps():
     returns them as a dictionary
 
     Returns:
-        tuple<dict<str, list<tuple<str, str>>>:
-            Dictionaries of the dependencies found in the Pipfile
+        pipfile_deps (dict<str, list<tuple<str, str>>>):
+            Dictionary of the dependencies found in the Pipfile
+        pipfile_extras (dict<str, list<str>>):
+            Dictionary of extras specified in the Pipfile
     """
     pipfile_deps = read_pipfile()
+
+    pipfile_extras = {}
     for dep in pipfile_deps.keys():
         dep_spec = pipfile_deps[dep]
         if isinstance(dep_spec, dict):
+            if 'extras' in dep_spec:
+                pipfile_extras[dep] = dep_spec['extras']
             dep_spec = dep_spec['version']
         pipfile_deps[dep] = re.findall(spec_exp, dep_spec)
 
     pipfile_deps = split_ops_and_versions(pipfile_deps)
 
-    return pipfile_deps
+    return pipfile_deps, pipfile_extras
 
 
 def read_pipfile():
@@ -125,12 +148,13 @@ def split_ops_and_versions(deps):
     return deps
 
 
-def run_checks(setup_deps, pipfile_deps):
+def run_checks(setup_deps, setup_extras, pipfile_deps, pipfile_extras):
     """
     Runs all currently implemented checks
     """
     name_equality_check(setup_deps, pipfile_deps)
     version_check(setup_deps, pipfile_deps)
+    extras_equality_check(setup_extras, pipfile_extras)
 
 
 def name_equality_check(setup_deps, pipfile_deps):
@@ -222,4 +246,39 @@ def version_check(setup_deps, pipfile_deps):
             "Dependency discrepancies between Pipfile and setup.py "
             "are present in the following packages: " +
             ", ".join(problem_deps))
+    return True
+
+
+def extras_equality_check(setup_extras, pipfile_extras):
+    """
+    Checks that all packages that specify extras in one dependency file
+    also specify them in the other dependency file, and that those extras
+    match across files.
+
+    Args:
+        setup_extras (dict<str, list<str>>):
+            Dictionary of extras specified in setup.py
+        pipfile_extras (dict<str, list<str>>):
+            Dictionary of extras specified in the Pipfile
+    """
+    if setup_extras.keys() != pipfile_extras.keys():
+        setup_deps = set(setup_extras.keys())
+        pipfile_deps = set(pipfile_extras.keys())
+        discrepancy_deps = setup_deps.symmetric_difference(pipfile_deps)
+        discrepancy_deps_str = ', '.join(discrepancy_deps)
+        raise KeyError('There is a discrepancy in what packages have extras '
+                       'specified between setup.py and the Pipfile. '
+                       'Packages involved in discrepancy: ' +
+                       discrepancy_deps_str)
+
+    deps_w_mismatched_extras = []
+    for dep in setup_extras.keys():
+        if setup_extras[dep] != pipfile_extras[dep]:
+            deps_w_mismatched_extras.append(dep)
+
+    if deps_w_mismatched_extras:
+        deps_w_mismatched_extras_str = ', '.join(deps_w_mismatched_extras)
+        raise ValueError('The following dependencies have mismatched '
+                         'package extras between setup.py and the Pipfile: ' +
+                         deps_w_mismatched_extras_str)
     return True
