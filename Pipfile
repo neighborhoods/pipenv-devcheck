@@ -7,6 +7,8 @@ verify_ssl = true
 flake8 = "==3.7.9"
 pytest = "==5.3.5"
 pytest-mock = "==2.0.0"
+twine = "==3.2.0"
+wheel = "==0.34.2"
 
 [packages]
 packaging = "==20.1"
