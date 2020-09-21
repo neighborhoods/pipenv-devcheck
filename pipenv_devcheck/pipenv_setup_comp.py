@@ -54,8 +54,12 @@ def get_setup_deps():
         parsed_dep = re.findall(setup_spec_exp, dep)
         if len(parsed_dep):
             parsed_dep = parsed_dep[0]
-            setup_deps.update({parsed_dep[0]: [spec for spec in parsed_dep[1:]
-                                               if spec != ""]})
+            dep_name = parsed_dep[0]
+            if dep_name in setup_deps.keys():
+                raise ValueError('Dependency {} appears multiple times in '
+                                 'setup file.'.format(dep_name))
+            setup_deps.update({dep_name: [spec for spec in parsed_dep[1:]
+                                          if spec != ""]})
         else:
             setup_deps.update({dep: ["*"]})
 
@@ -80,10 +84,14 @@ def read_setup():
         if is_setup_node:
             setup_node = node
 
+    deps = []
     for kw in setup_node.keywords:
         if kw.arg == "install_requires":
-            setup_deps_str = ast.literal_eval(kw.value)
-            return setup_deps_str
+            deps.extend(ast.literal_eval(kw.value))
+        if kw.arg == "extras_require":
+            for extra_deps in ast.literal_eval(kw.value).values():
+                deps.extend(extra_deps)
+    return deps
 
 
 def get_pipfile_deps():
