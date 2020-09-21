@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-09-21
+
+### Added
+- Support for packages that have extra modules themselves
+
 ## [0.4.0] - 2020-07-21
 
 ### Added
-- Support for package extras
+- Support for package extras in dependencies
 
 ### Changed
 - Switched to standard NHDS CI pipeline
