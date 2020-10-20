@@ -4,15 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-flake8 = "==3.7.9"
-pytest = "==5.3.5"
-pytest-mock = "==2.0.0"
-twine = "==3.2.0"
-wheel = "==0.34.2"
+flake8 = "~=3.7"
+pytest = "~=5.3"
+pytest-mock = "~=2.0"
+twine = "~=3.2"
+wheel = "~=0.34"
 
 [packages]
-packaging = "==20.1"
-pipfile = "==0.0.2"
+packaging = "~=20.1"
+pipfile = "~=0.0.2"
 
 [requires]
 python_version = "3.7"
