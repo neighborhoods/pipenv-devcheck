@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2021-01-05
+
+### Changed
+- Flexible version pins in Pipfile
+- Release mechanism now does Github releases instead of just tags
+
 ## [0.5.0] - 2020-09-21
 
 ### Added
