@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 import os
+import subprocess
 import sys
 from shutil import rmtree
 
+from github import Github
 from setuptools import setup, find_packages, Command
 
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 about = {}
-with open(os.path.join(here, "pipenv_devcheck", "__version__.py"), "r") as f:
+with open(os.path.join(here, "pipenv_devcheck", "_version.py"), "r") as f:
     exec(f.read(), about)
 
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -52,8 +54,20 @@ class UploadCommand(Command):
             raise ValueError('Pushing to PyPi failed.')
 
         self.status('Pushing git tags…')
-        os.system('git tag v{0}'.format(about["__version__"]))
-        os.system('git push --tags')
+        current_commit = str(
+            subprocess.check_output(['git', 'rev-parse', 'HEAD']),
+            'utf-8').strip()
+
+        g = Github(os.getenv('GITHUB_PAT'))
+        repo = g.get_repo('neighborhoods/' + about['__title__'])
+        repo.create_git_tag_and_release(
+            tag=about['__version__'],
+            tag_message='',
+            release_name=about['__version__'],
+            release_message='',
+            object=current_commit,
+            type='commit'
+        )
 
         sys.exit()
 

@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 flake8 = "~=3.7"
+PyGithub = "~=1.54"
 pytest = "~=5.3"
 pytest-mock = "~=2.0"
 twine = "~=3.2"
